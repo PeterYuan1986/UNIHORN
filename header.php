@@ -49,7 +49,6 @@ function get_ups_status($trackingNumber) {
         //set endpoint url
         $client->__setLocation($endpointurl);
 
-
         //create soap header
         $usernameToken['Username'] = $userid;
         $usernameToken['Password'] = $passwd;
@@ -59,7 +58,6 @@ function get_ups_status($trackingNumber) {
 
         $header = new SoapHeader('http://www.ups.com/XMLSchema/XOLTWS/UPSS/v1.0', 'UPSSecurity', $upss);
         $client->__setSoapHeaders($header);
-
 
         //get response
         $resp = $client->__soapCall($operation, array($request));
@@ -91,8 +89,6 @@ function get_status($trackingNumber) {
     $service = "TrackV2";
 
     $xml = rawurlencode("<TrackFieldRequest USERID='071UNIHO1781'><TrackID ID='" . $trackingNumber . "'></TrackID></TrackFieldRequest>");
-
-
 
     $request = $url . "?API=" . $service . "&XML=" . $xml;
 // send the POST values to USPS
@@ -127,15 +123,18 @@ function get_status($trackingNumber) {
             $sql = "UPDATE `daifaorders` SET status='Delivered' WHERE `tracking`='" . $trackingNumber . "'";
             mysqli_query($conn, $sql);
         } else {
+            if (@$deliveryStatus[0] != null) {                
             $sql = "UPDATE `daifaorders` SET status='" . $deliveryStatus[0] . "' WHERE `tracking`='" . $trackingNumber . "'";
             mysqli_query($conn, $sql);
+            }
+
         }
         return @$deliveryStatus[0];
     }
 }
 
 function isEmpty($val) {
-    
+
     if (!is_string($val))
         return true; //是否是字符串类型 
 

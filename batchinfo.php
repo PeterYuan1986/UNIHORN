@@ -17,7 +17,6 @@ if ($cmpid == '6') {
 $childid = $_SESSION['user_info']['childid'];
 check_access($useroffice, $userlevel, $pageoffice, $pagelevel);
 
-
 // 换cmpid在页面顶端
 if (sizeof($childid) > 1) {
     foreach ($childid as $x) {
@@ -64,7 +63,6 @@ if ($totalrow != 0) {
         $data[] = $arr;
     }
 }
-
 //刷新追踪信息
 if (isset($_POST['fresh'])) {
     $sql = "SELECT tracking, status FROM `daifaorders` where not(status='Delivered') and cmpid='" . $cmpid . "' and batch='" . $batch . "'";  //tracking>0 and not(status='Delivered')
@@ -542,6 +540,7 @@ if (isset($_POST['dhl_invoice'])) {
                                             <th><a style="color: #fff" >手机</a></th>
                                             <th><a style="color: #fff" href="batchinfo.php?column=weight&order=<?php echo $asc_or_desc . "&id=" . $batch; ?>">重量<i class=" fa fa-sort<?php echo $column == 'weight' ? '-' . $up_or_down : ''; ?>"></i></a></th>
                                             <th><a style="color: #fff" >备注</a></th>
+                                            <th><a style="color: #fff" >下载运单</a></th>
                                         </tr>
 
 
@@ -559,7 +558,6 @@ if (isset($_POST['dhl_invoice'])) {
                                                 print "<td>{$data[$index]['orderid']}</td>";
                                                 print "<td>" . $data[$index]['carrier'] . "</td>";
                                                 print "<td>{$data[$index]['service']}</td>";
-
 
                                                 if (str_starts_with($data[$index]['tracking'], '1Z')) {
                                                     ?>
@@ -592,6 +590,17 @@ if (isset($_POST['dhl_invoice'])) {
                                                 print "<td>{$data[$index]['phone']}</td>";
                                                 print "<td>{$data[$index]['weight']}</td>";
                                                 print "<td>{$data[$index]['note']}</td>";
+                                                $name = "./upload/cmp" . $cmpid . "_" . $data[$index]['orderid'] . ".pdf";
+                                                if ($data[$index]['label']) {
+                                                    ?>
+                                                    <td><button><a onclick="window.open('downloadlabel.php?path=<?php print ($name); ?>')">下载运单</a></button></td>
+                                                    <?php
+                                                }
+
+//                                               $ca = "label" . $index;
+//                                                if ($data[$index]['label']) {
+//                                                    print "<td><input type='submit' style='color:#000'  name='$ca' value='下载运单'></td>";
+//                                                }
                                                 print '</tr>';
                                             }
                                         }
@@ -673,15 +682,15 @@ if (isset($_POST['dhl_invoice'])) {
 
 
         <script type="text/javascript">
-                                                    function openNewWin(url)
-                                                    {
-                                                        window.open(url);
-                                                    }
+                                                        function openNewWin(url)
+                                                        {
+                                                            window.open(url);
+                                                        }
 
-                                                    function confirmation(url) {
+                                                        function confirmation(url) {
 
-                                                        return confirm('Are you sure?');
-                                                    }
+                                                            return confirm('Are you sure?');
+                                                        }
 
 
         </script>

@@ -47,16 +47,16 @@ if (isset($_GET['type']) && $_GET['type'] == 'amazon') {
     @$content = fgets($filepath);
     $file = ("./upload/Export_Newegg_upload_" . $batch . ".csv");
     $fw = fopen($file, "w");
-    fwrite($fw, "Order Number,Order Date & Time,Sales Channel,Fulfillment Option,Ship To Address Line 1,Ship To Address Line 2,	Ship To City,	Ship To State,	Ship To ZipCode,Ship To Country	,Ship To First Name,	Ship To LastName,	Ship To Company,	Ship To Phone Number,	Order Customer Email,	Order Shipping Method,	Item Seller Part #,	Item Newegg #,	Item Unit Price,	Extend Unit Price,	Item Unit Shipping Charge,	Extend Shipping Charge,	Extend VAT,	Extend Duty,	Order Shipping Total,Order Discount Amount,Sales Tax,VAT Total,Duty Total,Order Total,Quantity Ordered,Quantity Shipped,Actual Shipping Carrier,Actual Shipping Method,	Tracking Number\n");
+    fwrite($fw, "Order Number,Order Date & Time,Sales Channel,Fulfillment Option,Ship To Address Line 1,Ship To Address Line 2,	Ship To City,	Ship To State,	Ship To ZipCode,Ship To Country	,Ship To First Name,	Ship To LastName,	Ship To Company,	Ship To Phone Number,	Order Customer Email,	Order Shipping Method,	Item Seller Part #,	Item Newegg #,	Item Unit Price,	Extend Unit Price,	Item Unit Shipping Charge,	Extend Shipping Charge,	Extend VAT,	Extend Duty,	Order Shipping Total,Order Discount Amount,Sales Tax,VAT Total,Duty Total,Recycling Fee Total,Order Total,Quantity Ordered,Quantity Shipped,Actual Shipping Carrier,Actual Shipping Method,	Tracking Number\n");
     while (@$content = fgetcsv($filepath, 1000, ",")) {    //每次读取CSV里面的一行内容
         $sql = "SELECT carrier,tracking,service FROM daifaorders where batch='" . $batch . "' and (cmpid='" . $cmpid . "') and orderid='" . $content[0] . "'";  //SELECT * FROM daifaorders where batch='0704_UPS' ORDER by orderid ASC
         $result = mysqli_query($conn, $sql);
         $row = mysqli_fetch_array($result);
         $text = '';
-        for ($index = 0; $index <= 30; $index++) {
+        for ($index = 0; $index <= 31; $index++) {    //经常会多了一个Recycling Fee Total， 这里改成30，如果没有Recycling Fee Total，下面content【31】改成30. sql里面删掉Recycling Fee Total
             $text = $text . strval($content[$index]) . ",";
         }
-        $text = $text . $content[30] . "," . $row['carrier'] . "," . $row['service'] . "," . $row['tracking'] . "\n";
+        $text = $text . $content[31] . "," . $row['carrier'] . "," . $row['service'] . "," . $row['tracking'] . "\t\n";
         fwrite($fw, $text);
     }
     fclose($fw);
@@ -150,7 +150,7 @@ if (isset($_GET['type']) && $_GET['type'] == 'amazon') {
         fwrite($fw, "Order ID (required), Service,Ship To - Name	, Ship To - Address 1 , 	Ship To - Address 2 ,	Ship To - City	, Ship To - State/Province ,	Ship To - Postal Code,	Ship To - Phone,	Total Weight in Oz, Note, \n");
 
         for ($index = 0; $index < @count($data); $index++) {
-            $text = "\"" . $data[$index]['orderid'] . "\"," . $data[$index]['service'] . ",\"" . $data[$index]['name'] . "\",\"" . $data[$index]['address'] . "\",\"" . $data[$index]['address2'] . "\",\"" . $data[$index]['city'] . "\",\"" . $data[$index]['state'] . "\",\t" . strval($data[$index]['zipcode']) . "\t,\"" . $data[$index]['phone'] . "\"," . $data[$index]['weight'] . ",\"" . $data[$index]['note'] . "\"\n";
+            $text = $data[$index]['orderid'] . "," . $data[$index]['service'] . ",\"" . $data[$index]['name'] . "\",\"" . $data[$index]['address'] . "\",\"" . $data[$index]['address2'] . "\",\"" . $data[$index]['city'] . "\",\"" . $data[$index]['state'] . "\",\t" . strval($data[$index]['zipcode']) . "\t,\"" . $data[$index]['phone'] . "\"," . $data[$index]['weight'] . ",\"" . $data[$index]['note'] . "\"\n";
             fwrite($fw, $text);
         }
     } else {
@@ -160,7 +160,7 @@ if (isset($_GET['type']) && $_GET['type'] == 'amazon') {
         fwrite($fw, "Order ID (required), Service, Tracking No,Tracking Status, Cost,	Ship To - Name	, Ship To - Address 1 , 	Ship To - Address 2 ,	Ship To - City	, Ship To - State/Province ,	Ship To - Postal Code,	Ship To - Phone,	Total Weight in Oz, Note, \n");
 
         for ($index = 0; $index < @count($data); $index++) {
-            $text = "'" . $data[$index]['orderid'] . "," . $data[$index]['service'] . ",\t" . $data[$index]['tracking'] . "\t," . $data[$index]['status'] . "," . $data[$index]['cost'] . ",\"" . $data[$index]['name'] . "\",\"" . $data[$index]['address'] . "\",\"" . $data[$index]['address2'] . "\",\"" . $data[$index]['city'] . "\",\"" . $data[$index]['state'] . "\",\t" . strval($data[$index]['zipcode']) . "\t,\"" . $data[$index]['phone'] . "\"," . $data[$index]['weight'] . ",\"" . $data[$index]['note'] . "\"\n";
+            $text =  $data[$index]['orderid'] . "," . $data[$index]['service'] . "," . $data[$index]['tracking'] . "\t," . $data[$index]['status'] . "," . $data[$index]['cost'] . ",\"" . $data[$index]['name'] . "\",\"" . $data[$index]['address'] . "\",\"" . $data[$index]['address2'] . "\",\"" . $data[$index]['city'] . "\",\"" . $data[$index]['state'] . "\",\t" . strval($data[$index]['zipcode']) . "\t,\"" . $data[$index]['phone'] . "\"," . $data[$index]['weight'] . ",\"" . $data[$index]['note'] . "\"\n";
 
             fwrite($fw, $text);
         }

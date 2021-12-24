@@ -42,7 +42,7 @@ if (!isset($_SESSION['orderinfo_searchtest'])) {
 if (isset($_POST['search'])) {
     $_SESSION['orderinfo_searchtest'] = $_POST['searchtext'];
 }
-$sql = "SELECT * FROM daifaorders where (note LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or orderid LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or service LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or tracking LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or name LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or address2 LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or address LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or city LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or state LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or zipcode LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or batch LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%') and (cmpid='" . $cmpid . "') ORDER BY id DESC";
+$sql = "SELECT * FROM daifaorders where (note LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or orderid LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or status LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or service LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or tracking LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or name LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or address2 LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or address LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or city LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or state LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or zipcode LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%' or batch LIKE '%" . $_SESSION['orderinfo_searchtest'] . "%') and (cmpid='" . $cmpid . "') ORDER BY id DESC";
 
 $result = mysqli_query($conn, $sql);
 $totalrow = mysqli_num_rows($result);
@@ -436,6 +436,7 @@ if (empty(@$_GET['page']) || !is_numeric(@$_GET['page']) || @$_GET['page'] < 1 |
                                             <th><a style="color: #fff" >配送公司</a></th>
                                             <th><a style="color: #fff" >邮寄服务类型</a></th>
                                             <th><a style="color: #fff" >快递单号</a></th>
+                                            <th><a style="color: #fff" >追踪信息</a></th>                                            
                                             <th><a style="color: #fff" >邮费</a></th>
                                             <th><a style="color: #fff" >收件人</a></th>
                                             <th><a style="color: #fff" >地址1</a></th>
@@ -461,7 +462,13 @@ if (empty(@$_GET['page']) || !is_numeric(@$_GET['page']) || @$_GET['page'] < 1 |
                                                     //for (; $index < $perpage && $index < @count($data); $index++) {
                                                     print '<tr>';
                                                     print "<td>{$data[$index]['orderid']}</td>";
-                                                    print "<td>{$data[$index]['batch']}</td>";
+                                                    
+                                                    ?>
+                                                    <!--print "<td><a href='batchinfo.php?id='{$data[$index]['batch']}' style='color:#ff4' >{$data[$index]['batch']}</td>";-->
+                                                    <td><a href="batchinfo.php?id=<?php print $data[$index]['batch']; ?>" style="color:#ff4"><?php print $data[$index]['batch']; ?></a></td>
+                                                        
+                                                    <?php
+                                                    
                                                     print "<td>{$data[$index]['carrier']}</td>";
                                                     print "<td>{$data[$index]['service']}</td>";
                                                     if (str_starts_with($data[$index]['tracking'], '1Z')) {
@@ -481,7 +488,7 @@ if (empty(@$_GET['page']) || !is_numeric(@$_GET['page']) || @$_GET['page'] < 1 |
                                                         <td><a href='#' style="color:#ff4" onclick='openNewWin("https://tools.usps.com/go/TrackConfirmAction?tLabels=<?php print $data[$index]['tracking']; ?>")'><?php print $data[$index]['tracking']; ?></a></td>
                                                         <?php
                                                     }
-                                                    //print "<td>". $data[$index]['status']."</td>";
+                                                    print "<td>" . $data[$index]['status'] . "</td>";
                                                     print "<td>{$data[$index]['cost']}</td>";
                                                     print "<td>{$data[$index]['name']}</td>";
                                                     print "<td>{$data[$index]['address']}</td>";
@@ -587,15 +594,15 @@ if (empty(@$_GET['page']) || !is_numeric(@$_GET['page']) || @$_GET['page'] < 1 |
 
 
         <script type="text/javascript">
-                                                    function openNewWin(url)
-                                                    {
-                                                        window.open(url);
-                                                    }
+                                                            function openNewWin(url)
+                                                            {
+                                                                window.open(url);
+                                                            }
 
-                                                    function confirmation(url) {
+                                                            function confirmation(url) {
 
-                                                        return confirm('Are you sure?');
-                                                    }
+                                                                return confirm('Are you sure?');
+                                                            }
 
 
         </script>

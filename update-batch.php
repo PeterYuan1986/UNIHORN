@@ -40,6 +40,38 @@ $totalnotes = sizeof($datanote);
 if (isset($_POST['discard'])) {
     header('location: data-table.php');
 }
+if (isset($_POST['done'])) {
+    if ($result) {
+        $sql = "SELECT cost, fee FROM daifaorders where (cmpid='" . $cmpid . "') AND batch='" . $batch . "'";
+        $result = mysqli_query($conn, $sql);
+        while ($arr = mysqli_fetch_array($result)) {
+            $data[] = $arr;
+        }
+        $totalcost = 0;
+        $totalfee = 0;
+        for ($index = 0; $index < @count($data); $index++) {
+            $totalcost = $totalcost + $data[$index][0];
+            $totalfee = $totalfee + $data[$index][1];
+        }
+        $sql = "UPDATE daifa SET time=CURRENT_TIME, status='SHIPPED', shippingcost='" . $totalcost . "', servicefee='" . $totalfee . "' WHERE (cmpid='" . $cmpid . "') AND batchname='" . $batch . "'";
+        $result = mysqli_query($conn, $sql);
+        echo "<script> alert('文件上传成功！')</script>";
+        if ($_POST['checkbox'] == NULL) {
+            print '<script> location.replace("data-table.php"); </script>';
+        }
+    }
+
+    header('location: data-table.php');
+}
+if (isset($_POST['undone'])) {
+
+    $sql = "UPDATE daifa SET status='PENDING' WHERE (cmpid='" . $cmpid . "') AND batchname='" . $batch . "'";
+    $result = mysqli_query($conn, $sql);
+
+    print '<script> location.replace("data-table.php"); </script>';
+
+    header('location: data-table.php');
+}
 
 
 if (isset($_POST['modify'])) {
@@ -756,8 +788,12 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
 
                                                         </div>
                                                         <div >
+
                                                             <input name="save" type="submit"  value="ADD NEW">              
-                                                            <input name="dicard" type="submit"  value="DISCARD">                 
+                                                            <input name="dicard" type="submit"  value="DISCARD">         
+                                                            <input name="done" type="submit"  value="DONE">     
+                                                            <input name="undone" type="submit"  value="PENDING">  
+
 
                                                         </div>
                                                     </div>

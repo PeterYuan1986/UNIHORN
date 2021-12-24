@@ -38,7 +38,7 @@ $totalnotes = sizeof($datanote);
 
 if (isset($_REQUEST['search'])) {
     $sku = $_POST['searcheditorder'];
-    $sql = "SELECT `batch`, `service`,  `name`, `address`,`address2`, `city`, `state`, `zipcode`, `phone`, `weight`, note  FROM `daifaorders` WHERE (cmpid='" . $cmpid . "') and orderid ='" . $sku . "'";
+    $sql = "SELECT `batch`, `service`,  `name`, `address`,`address2`, `city`, `state`, `zipcode`, `phone`, `weight`, note, label  FROM `daifaorders` WHERE (cmpid='" . $cmpid . "') and orderid ='" . $sku . "'";
     $result = mysqli_query($conn, $sql);
 
     $row = mysqli_fetch_array($result);
@@ -54,6 +54,7 @@ if (isset($_REQUEST['search'])) {
         $phone = $row['phone'];
         $weight = $row['weight'];
         $note = $row['note'];
+        $label = $row['label'];
     } else {
         $sku = 0;
         $batch = 0;
@@ -67,6 +68,7 @@ if (isset($_REQUEST['search'])) {
         $city = 0;
         $zipcode = 0;
         $note = 0;
+        $label = 0;
     }
 } else {
     $sku = 0;
@@ -119,6 +121,10 @@ if (isset($_POST["save"])) {
     $zipcode = $izipcode;
     $note = $inote;
     updatestr();
+    $allowedExts = array(
+        'application/pdf',
+    );
+ 
     if (checkinput($isku)) {
         $sql = "select * from daifaorders where (cmpid='" . $cmpid . "') and orderid='" . $isku . "'";
         $result = mysqli_query($conn, $sql);
@@ -143,12 +149,12 @@ if (isset($_POST["save"])) {
                     $sql = "UPDATE daifa SET time=CURRENT_TIME, orders= orders+1, servicefee=servicefee+" . $row[0] . " WHERE (cmpid='" . $cmpid . "') AND batchname='" . $ibatch . "'";
                     $result = mysqli_query($conn, $sql);
                     print '<script>alert("Add Successful!")</script>';
-                    // print '<script> location.replace("orderupdate.php"); </script>';         
+// print '<script> location.replace("orderupdate.php"); </script>';         
                 } else {
                     $pattern = '/(\*\d+(;|；))/';  //匹配inote里的整数
 
                     if (preg_match_all($pattern, $inote, $match)) {
-                        //echo '<pre>';
+//echo '<pre>';
                         $amount = 0;
                         foreach ($match[0] as $x) {
                             $x = str_replace("*", "", $x);
@@ -186,6 +192,18 @@ if (isset($_POST["save"])) {
             print '<script>alert("The Order ID has existed, please use a different ID or update it.")</script>';
         }
     }
+       if (isset($_FILES["file"])) {
+        if (in_array(@$_FILES["file"]["type"], $allowedExts)) {
+            move_uploaded_file(@$_FILES["file"]["tmp_name"], "./upload/cmp" . $cmpid . "_" . $isku . ".pdf");
+//echo "文件存储在: " . "upload/" . $_SESSION['daifabatchname'].".csv". "<br>";
+            $sql = "UPDATE `daifaorders` SET `label`=1 WHERE (cmpid='" . $cmpid . "') and orderid ='" . $isku . "'";
+            $result = mysqli_query($conn, $sql);
+
+//header("Location:data-table.php");
+        } else {
+            echo "<script> alert('请上传pdf文件!')</script>";
+        }
+    }
 }
 
 if (isset($_POST["update"])) {
@@ -202,6 +220,22 @@ if (isset($_POST["update"])) {
     $iweight = @$_POST["iweight"];
     $inote = @$_POST["inote"];
     updatestr();
+    $allowedExts = array(
+        'application/pdf',
+    );
+    if (isset($_FILES["file"])) {
+        if (in_array(@$_FILES["file"]["type"], $allowedExts)) {
+            move_uploaded_file(@$_FILES["file"]["tmp_name"], "./upload/cmp" . $cmpid . "_" . $isku . ".pdf" );
+//echo "文件存储在: " . "upload/" . $_SESSION['daifabatchname'].".csv". "<br>";
+            $sql = "UPDATE `daifaorders` SET `label`=1 WHERE (cmpid='" . $cmpid . "') and orderid ='" . $isku . "'";
+            print($sql);
+            $result = mysqli_query($conn, $sql);
+
+//header("Location:data-table.php");
+        } else {
+            echo "<script> alert('请上传pdf，png,jepg文件!')</script>";
+        }
+    }
     $sql = "select batch from daifaorders where (cmpid='" . $cmpid . "') and orderid='" . $isku . "'";
     $result = mysqli_query($conn, $sql);
     if (!$result || mysqli_num_rows($result) == 0) {
@@ -244,8 +278,7 @@ if (isset($_POST["update"])) {
                 $pattern = '/(\*\d+(;|；))/';  //匹配inote里的整数
 
                 if (preg_match_all($pattern, $inote, $match)) {
-                    //echo '<pre>';
-                    print_r($match);
+//echo '<pre>';
                     $amount = 0;
                     foreach ($match[0] as $x) {
                         $x = str_replace("*", "", $x);
@@ -661,10 +694,10 @@ function checkinput($isku) {
 
 
                                                     <div style="width:200px;float:left;"><input name="searcheditorder" type="text" placeholder="搜索订单号" value="<?php
-                                                        if (isset($_SESSION['orderidserchtext'])) {
-                                                            print $_SESSION['orderidserchtext'];
-                                                        }
-                                                        ?>" ></div>
+                                                                if (isset($_SESSION['orderidserchtext'])) {
+                                                                    print $_SESSION['orderidserchtext'];
+                                                                }
+                                                                ?>" ></div>
                                                     <div style="color:#fff;width:000px;float:left;">
                                                         <button name="search" type="submit" value="search" class="pd-setting-ed"><i class="fa fa-search-plus" aria-hidden="true"></i></button>
 
@@ -681,7 +714,7 @@ function checkinput($isku) {
                                     <div id="myTabContent" class="tab-content custom-product-edit">
 
                                         <div class="product-tab-list tab-pane fade active in" id="description">
-                                            <form name="form" method="post" action="">
+                                            <form name="form" method="POST"  enctype="multipart/form-data">
                                                 <div class="row">
                                                     <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
                                                         <div class="review-content-section">
@@ -690,9 +723,9 @@ function checkinput($isku) {
                                                                 <span class="input-group-addon"><i class="icon nalika-edit" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">订单号</span>
                                                                 <input name='isku' type="text" required="" class="form-control" placeholder="请输入订单号" <?php
-                                                                if ($sku) {
-                                                                    print "value='" . $sku . "'";
-                                                                }
+                                                        if ($sku) {
+                                                            print "value='" . $sku . "'";
+                                                        }
                                                                 ?>>
                                                             </div>
 
@@ -748,10 +781,19 @@ function checkinput($isku) {
                                                                 <span class="input-group-addon"><i class="fa fa-newspaper-o" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">备注</span>
                                                                 <input name="inote" type="text"  class="form-control" placeholder="商品名*数量；商品名*数量；..." <?php
-                                                                if ($note) {
-                                                                    print "value='" . $note . "'";
+                                                                    if ($note) {
+                                                                        print "value='" . $note . "'";
+                                                                    }
+                                                                    ?>>                                                                
+                                                            </div>
+                                                            <div class="input-group mg-b-pro-edt">
+                                                                <span class="input-group-addon"><i class="fa fa-upload" aria-hidden="true"></i></span>
+                                                                <span class="input-group-addon">上传label</span>
+                                                                <input type="file" name="file" style="color:yellow"/><?php
+                                                                if (@$label) {
+                                                                    print "label已上传";
                                                                 }
-                                                                ?>>
+                                                                    ?>
                                                             </div>
 
 
@@ -766,7 +808,7 @@ function checkinput($isku) {
                                                                 if ($receiver) {
                                                                     print "value='" . $receiver . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                             </div>
                                                             <div class="input-group mg-b-pro-edt">
                                                                 <span class="input-group-addon"><i class="fa fa-home" aria-hidden="true"></i></span>
@@ -775,7 +817,7 @@ function checkinput($isku) {
                                                                 if ($address) {
                                                                     print "value='" . $address . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                             </div>   
                                                             <div class="input-group mg-b-pro-edt">
                                                                 <span class="input-group-addon"><i class="fa fa-home" aria-hidden="true"></i></span>
@@ -784,7 +826,7 @@ function checkinput($isku) {
                                                                 if ($address) {
                                                                     print "value='" . $address2 . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                             </div>  
 
                                                             <div class="input-group mg-b-pro-edt">
@@ -794,21 +836,21 @@ function checkinput($isku) {
                                                                 if ($city) {
                                                                     print "value='" . $city . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                                 <span class="input-group-addon"><i class="fa fa-home" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">州</span>
                                                                 <input name="istate" type="text" required="" class="form-control" placeholder="" <?php
                                                                 if ($city) {
                                                                     print "value='" . $state . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                                 <span class="input-group-addon"><i class="fa fa-home" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">邮编</span>
                                                                 <input name="izipcode" type="text" class="form-control" placeholder="" <?php
                                                                 if ($zipcode) {
                                                                     print "value='" . $zipcode . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                             </div>
                                                             <div class="input-group mg-b-pro-edt">
                                                                 <span class="input-group-addon"><i class="fa fa-phone" aria-hidden="true"></i></span>
@@ -817,14 +859,14 @@ function checkinput($isku) {
                                                                 if ($phone) {
                                                                     print "value='" . $phone . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                                 <span class="input-group-addon"><i class="fa fa-car" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">重量</span>
                                                                 <input name="iweight" type="text" required="" class="form-control" placeholder="" <?php
                                                                 if ($weight) {
                                                                     print "value='" . $weight . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                             </div>
 
 
@@ -841,6 +883,7 @@ function checkinput($isku) {
                                                     </div>
                                                 </div>
                                             </form>
+
                                             <div>
                                                 <a>说明：<br></a>
                                                 <a>1.可添加新订单到选定批次，或者更新现有订单信息。<br></a>
