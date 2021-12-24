@@ -36,8 +36,13 @@ function updatestr() {
 $datanote = check_note($cmpid);
 $totalnotes = sizeof($datanote);
 
-if (isset($_REQUEST['search'])) {
-    $sku = $_POST['searcheditorder'];
+if (@isset($_REQUEST['search']) || @isset($_GET['orderinfo'])) {
+    if (isset($_REQUEST['search'])) {
+        $sku = $_POST['searcheditorder'];
+    }
+    elseif (@isset($_GET['orderinfo'])) {
+        $sku = $_GET['orderinfo'];
+    }
     $sql = "SELECT `batch`, `service`,  `name`, `address`,`address2`, `city`, `state`, `zipcode`, `phone`, `weight`, note, label  FROM `daifaorders` WHERE (cmpid='" . $cmpid . "') and orderid ='" . $sku . "'";
     $result = mysqli_query($conn, $sql);
 
@@ -590,10 +595,10 @@ function checkinput($isku) {
                                                             <?php } else { ?>
                                                                 <li ><a><input type="submit" style='background-color:rgba(204, 154, 129, 0);color:fff' name='<?php print $title; ?>' value='<?php print $title; ?>' /></a>
                                                                 </li>
-                                                                <?php
-                                                            }
-                                                        }
-                                                        ?>
+        <?php
+    }
+}
+?>
                                                     </ul>
 
                                                 </div>
@@ -642,7 +647,7 @@ function checkinput($isku) {
                                                                 ?>
                                                             </ul>
                                                             <div class="notification-view">
-                                                                <?php if (count($datanote) > 3) print "<a href='notification.php'>View All Notification</a>"; ?>
+<?php if (count($datanote) > 3) print "<a href='notification.php'>View All Notification</a>"; ?>
                                                             </div>
                                                         </div>
                                                     </li>
@@ -720,10 +725,10 @@ function checkinput($isku) {
 
 
                                                     <div style="width:200px;float:left;"><input name="searcheditorder" type="text" placeholder="搜索订单号" value="<?php
-                                                        if (isset($_SESSION['orderidserchtext'])) {
-                                                            print $_SESSION['orderidserchtext'];
-                                                        }
-                                                        ?>" ></div>
+if (isset($_SESSION['orderidserchtext'])) {
+    print $_SESSION['orderidserchtext'];
+}
+?>" ></div>
                                                     <div style="color:#fff;width:000px;float:left;">
                                                         <button name="search" type="submit" value="search" class="pd-setting-ed"><i class="fa fa-search-plus" aria-hidden="true"></i></button>
 
@@ -749,10 +754,10 @@ function checkinput($isku) {
                                                                 <span class="input-group-addon"><i class="icon nalika-edit" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">订单号</span>
                                                                 <input name='isku' type="text" required="" class="form-control" placeholder="请输入订单号" <?php
-                                                                if ($sku) {
-                                                                    print "value='" . $sku . "'";
-                                                                }
-                                                                ?>>
+if ($sku) {
+    print "value='" . $sku . "'";
+}
+?>>
                                                             </div>
 
                                                             <div class="input-group mg-b-pro-edt">
@@ -807,19 +812,19 @@ function checkinput($isku) {
                                                                 <span class="input-group-addon"><i class="fa fa-newspaper-o" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">备注</span>
                                                                 <input name="inote" type="text"  class="form-control" placeholder="商品名*数量；商品名*数量；..." <?php
-                                                                if ($note) {
-                                                                    print "value='" . $note . "'";
-                                                                }
-                                                                ?>>                                                                
+                                                                    if ($note) {
+                                                                        print "value='" . $note . "'";
+                                                                    }
+                                                                    ?>>                                                                
                                                             </div>
                                                             <div class="input-group mg-b-pro-edt">
                                                                 <span class="input-group-addon"><i class="fa fa-upload" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">上传label</span>
                                                                 <input type="file" name="file" style="color:yellow"/><?php
-                                                                if (@$label) {
-                                                                    print "label已上传";
-                                                                }
-                                                                ?>
+                                                                    if (@$label) {
+                                                                        print "<a style='color:red'>曾上传label，如要修改可重新上传</a>";
+                                                                    }
+                                                                    ?>
                                                             </div>
 
 
@@ -831,52 +836,52 @@ function checkinput($isku) {
                                                                 <span class="input-group-addon"><i class="fa fa-male" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">收件人</span>
                                                                 <input name="ireceiver" type="text" required="" class="form-control" placeholder="" <?php
-                                                                if ($receiver) {
-                                                                    print "value='" . $receiver . "'";
-                                                                }
-                                                                ?>>
+                                                                    if ($receiver) {
+                                                                        print "value='" . $receiver . "'";
+                                                                    }
+                                                                    ?>>
                                                             </div>
                                                             <div class="input-group mg-b-pro-edt">
                                                                 <span class="input-group-addon"><i class="fa fa-home" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">地址1</span>
                                                                 <input name="iaddress" type="text" required="" class="form-control" placeholder="" <?php
-                                                                if ($address) {
-                                                                    print "value='" . $address . "'";
-                                                                }
-                                                                ?>>
+                                                                    if ($address) {
+                                                                        print "value='" . $address . "'";
+                                                                    }
+                                                                    ?>>
                                                             </div>   
                                                             <div class="input-group mg-b-pro-edt">
                                                                 <span class="input-group-addon"><i class="fa fa-home" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">地址2</span>
                                                                 <input name="iaddress2" type="text"  class="form-control" placeholder="" <?php
-                                                                if ($address) {
-                                                                    print "value='" . $address2 . "'";
-                                                                }
-                                                                ?>>
+                                                                    if ($address) {
+                                                                        print "value='" . $address2 . "'";
+                                                                    }
+                                                                    ?>>
                                                             </div>  
 
                                                             <div class="input-group mg-b-pro-edt">
                                                                 <span class="input-group-addon"><i class="fa fa-home" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">城市</span>
                                                                 <input name="icity" type="text" required="" class="form-control" placeholder="" <?php
-                                                                if ($city) {
-                                                                    print "value='" . $city . "'";
-                                                                }
-                                                                ?>>
+                                                                    if ($city) {
+                                                                        print "value='" . $city . "'";
+                                                                    }
+                                                                    ?>>
                                                                 <span class="input-group-addon"><i class="fa fa-home" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">州</span>
                                                                 <input name="istate" type="text" required="" class="form-control" placeholder="" <?php
                                                                 if ($city) {
                                                                     print "value='" . $state . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                                 <span class="input-group-addon"><i class="fa fa-home" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">邮编</span>
                                                                 <input name="izipcode" type="text" class="form-control" placeholder="" <?php
                                                                 if ($zipcode) {
                                                                     print "value='" . $zipcode . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                             </div>
                                                             <div class="input-group mg-b-pro-edt">
                                                                 <span class="input-group-addon"><i class="fa fa-phone" aria-hidden="true"></i></span>
@@ -885,14 +890,14 @@ function checkinput($isku) {
                                                                 if ($phone) {
                                                                     print "value='" . $phone . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                                 <span class="input-group-addon"><i class="fa fa-car" aria-hidden="true"></i></span>
                                                                 <span class="input-group-addon">重量</span>
                                                                 <input name="iweight" type="text" required="" class="form-control" placeholder="" <?php
                                                                 if ($weight) {
                                                                     print "value='" . $weight . "'";
                                                                 }
-                                                                ?>>
+                                                                    ?>>
                                                             </div>
 
 

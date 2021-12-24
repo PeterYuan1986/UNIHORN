@@ -554,8 +554,10 @@ if (isset($_POST['dhl_invoice'])) {
 //      else {
                                         if (!is_null(@$data)) {
                                             for ($index = 0; $index < @count($data); $index++) {
-                                                print '<tr>';
-                                                print "<td>{$data[$index]['orderid']}</td>";
+                                                print '<tr>';?>
+                                                
+                                                <td><a href="orderupdate.php?orderinfo=<?php print $data[$index]['orderid']; ?>" style="color:#ff4"><?php print $data[$index]['orderid']; ?></a></td>
+                                                <?php
                                                 print "<td>" . $data[$index]['carrier'] . "</td>";
                                                 print "<td>{$data[$index]['service']}</td>";
 
