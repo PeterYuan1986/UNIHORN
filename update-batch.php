@@ -347,15 +347,18 @@ if (isset($_POST['confirm']) && isset($_SESSION['ordertosend'])) {
     if ($_SESSION['warehouse'] == 'nc') {
         $skuidx = 0;
         for (; $skuidx < @count($_SESSION['ordertosend']); $skuidx++) {
+            $check = "check" . $skuidx;
+            if (isset($_POST[$check])) {
 
-            $name = "ibatch" . $skuidx;
-            $sql = "UPDATE product SET nc=nc-" . $_SESSION['ordertosend'][$skuidx]['amount'] . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name] . "'";
-            mysqli_query($conn, $sql);
-            $sql = "UPDATE product SET sold=sold+" . $_SESSION['ordertosend'][$skuidx]['amount'] . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name] . "'";
-            mysqli_query($conn, $sql);
-            $productlist = json_encode(array(array($_POST[$name], $_SESSION['ordertosend'][$skuidx]['amount'])));
-            $sql = "INSERT INTO `ncstock`(date, productlist, subject, ordernumber, market, tracking, ship, cmpid) VALUES ('" . $str . "','" . $productlist . "','order' ,'" . $_SESSION['ordertosend'][$skuidx]['ordernumber'] . "','" . $_SESSION['ordertosend'][$skuidx]['market'] . "','" . $_SESSION['ordertosend'][$skuidx]['tracking'] . "','" . $_SESSION['ordertosend'][$skuidx]['ship'] . "','" . $cmpid . "')";
-            $result = mysqli_query($conn, $sql);
+                $name = "ibatch" . $skuidx;
+                $sql = "UPDATE product SET nc=nc-" . $_SESSION['ordertosend'][$skuidx]['amount'] . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name] . "'";
+                mysqli_query($conn, $sql);
+                $sql = "UPDATE product SET sold=sold+" . $_SESSION['ordertosend'][$skuidx]['amount'] . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name] . "'";
+                mysqli_query($conn, $sql);
+                $productlist = json_encode(array(array($_POST[$name], $_SESSION['ordertosend'][$skuidx]['amount'])));
+                $sql = "INSERT INTO `ncstock`(date, productlist, subject, ordernumber, market, tracking, ship, cmpid) VALUES ('" . $str . "','" . $productlist . "','order' ,'" . $_SESSION['ordertosend'][$skuidx]['ordernumber'] . "','" . $_SESSION['ordertosend'][$skuidx]['market'] . "','" . $_SESSION['ordertosend'][$skuidx]['tracking'] . "','" . $_SESSION['ordertosend'][$skuidx]['ship'] . "','" . $cmpid . "')";
+                $result = mysqli_query($conn, $sql);
+            }
         }
         unset($_SESSION['ordertosend']);
         echo "<script> alert('文件上传成功！')</script>";
@@ -364,16 +367,19 @@ if (isset($_POST['confirm']) && isset($_SESSION['ordertosend'])) {
     if ($_SESSION['warehouse'] == 'sh') {
         $skuidx = 0;
         for (; $skuidx < @count($_SESSION['ordertosend']); $skuidx++) {
+            $check = "check" . $skuidx;
+            if (isset($_POST[$check])) {
 
-            $name = "ibatch" . $skuidx;
-            $sql = "UPDATE product SET shanghai=shanghai-" . $_SESSION['ordertosend'][$skuidx]['amount'] . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name] . "'";
-            mysqli_query($conn, $sql);
+                $name = "ibatch" . $skuidx;
+                $sql = "UPDATE product SET shanghai=shanghai-" . $_SESSION['ordertosend'][$skuidx]['amount'] . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name] . "'";
+                mysqli_query($conn, $sql);
 
-            $sql = "UPDATE product SET sold=sold+" . $_SESSION['ordertosend'][$skuidx]['amount'] . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name] . "'";
-            mysqli_query($conn, $sql);
-            $productlist = json_encode(array(array($_POST[$name], $_SESSION['ordertosend'][$skuidx]['amount'])));
-            $sql = "INSERT INTO `shstock`(date, productlist, subject, ordernumber, market, tracking, ship, cmpid) VALUES ('" . $str . "','" . $productlist . "','order' ,'" . $_SESSION['ordertosend'][$skuidx]['ordernumber'] . "','" . $_SESSION['ordertosend'][$skuidx]['market'] . "','" . $_SESSION['ordertosend'][$skuidx]['tracking'] . "','" . $_SESSION['ordertosend'][$skuidx]['ship'] . "','" . $cmpid . "')";
-            $result = mysqli_query($conn, $sql);
+                $sql = "UPDATE product SET sold=sold+" . $_SESSION['ordertosend'][$skuidx]['amount'] . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name] . "'";
+                mysqli_query($conn, $sql);
+                $productlist = json_encode(array(array($_POST[$name], $_SESSION['ordertosend'][$skuidx]['amount'])));
+                $sql = "INSERT INTO `shstock`(date, productlist, subject, ordernumber, market, tracking, ship, cmpid) VALUES ('" . $str . "','" . $productlist . "','order' ,'" . $_SESSION['ordertosend'][$skuidx]['ordernumber'] . "','" . $_SESSION['ordertosend'][$skuidx]['market'] . "','" . $_SESSION['ordertosend'][$skuidx]['tracking'] . "','" . $_SESSION['ordertosend'][$skuidx]['ship'] . "','" . $cmpid . "')";
+                $result = mysqli_query($conn, $sql);
+            }
         }
         unset($_SESSION['ordertosend']);
         echo "<script> alert('文件上传成功！')</script>";
@@ -385,14 +391,17 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
         $skuidx_array = 0;
         foreach ($_SESSION['tosend_array'] as $key => $value) {
             $name_array = "ibatch_array" . $skuidx_array;
-            $sql = "UPDATE product SET nc=nc-" . $value . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name_array] . "'";
-            mysqli_query($conn, $sql);
-            $sql = "UPDATE product SET sold=sold+" . $value . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name_array] . "'";
-            mysqli_query($conn, $sql);
-            $productlist = json_encode(array(array($_POST[$name_array], $value)));
-            $sql = "INSERT INTO `ncstock`(date, productlist, subject, ordernumber, market, cmpid) VALUES ('" . $str . "','" . $productlist . "','order' ,'" . $batch . "','" . $_SESSION['ordertosend'][$skuidx_array]['market'] . "','" . $cmpid . "')";
-            $result = mysqli_query($conn, $sql);
-            $skuidx_array++;
+            $check = "check_array" . $skuidx_array;
+            if (isset($_POST[$check])) {
+                $sql = "UPDATE product SET nc=nc-" . $value . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name_array] . "'";
+                mysqli_query($conn, $sql);
+                $sql = "UPDATE product SET sold=sold+" . $value . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name_array] . "'";
+                mysqli_query($conn, $sql);
+                $productlist = json_encode(array(array($_POST[$name_array], $value)));
+                $sql = "INSERT INTO `ncstock`(date, productlist, subject, ordernumber, market, cmpid) VALUES ('" . $str . "','" . $productlist . "','order' ,'" . $batch . "','" . $_SESSION['ordertosend'][$skuidx_array]['market'] . "','" . $cmpid . "')";
+                $result = mysqli_query($conn, $sql);
+                $skuidx_array++;
+            }
         }
         unset($_SESSION['tosend_array']);
         echo "<script> alert('文件上传成功！')</script>";
@@ -402,15 +411,18 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
         $skuidx_array = 0;
         foreach ($_SESSION['tosend_array'] as $key => $value) {
             $name_array = "ibatch_array" . $skuidx_array;
-            $sql = "UPDATE product SET shanghai=shanghai-" . $value . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name_array] . "'";
-            print $sql;
-            mysqli_query($conn, $sql);
-            $sql = "UPDATE product SET sold=sold+" . $value . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name_array] . "'";
-            mysqli_query($conn, $sql);
-            $productlist = json_encode(array(array($_POST[$name_array], $value)));
-            $sql = "INSERT INTO `shstock`(date, productlist, subject, ordernumber, market, cmpid) VALUES ('" . $str . "','" . $productlist . "','order' ,'" . $batch . "','" . $_SESSION['ordertosend'][$skuidx_array]['market'] . "','" . $cmpid . "')";
-            $result = mysqli_query($conn, $sql);
-            $skuidx_array++;
+            $check = "check_array" . $skuidx_array;
+            if (isset($_POST[$check])) {
+                $sql = "UPDATE product SET shanghai=shanghai-" . $value . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name_array] . "'";
+                print $sql;
+                mysqli_query($conn, $sql);
+                $sql = "UPDATE product SET sold=sold+" . $value . " where (cmpid='" . $cmpid . "') AND sku='" . $_POST[$name_array] . "'";
+                mysqli_query($conn, $sql);
+                $productlist = json_encode(array(array($_POST[$name_array], $value)));
+                $sql = "INSERT INTO `shstock`(date, productlist, subject, ordernumber, market, cmpid) VALUES ('" . $str . "','" . $productlist . "','order' ,'" . $batch . "','" . $_SESSION['ordertosend'][$skuidx_array]['market'] . "','" . $cmpid . "')";
+                $result = mysqli_query($conn, $sql);
+                $skuidx_array++;
+            }
         }
         unset($_SESSION['tosend_array']);
         echo "<script> alert('文件上传成功！')</script>";
@@ -630,7 +642,7 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
                                                                 ?>
                                                                 <li ><a style='color:rgba(204, 154, 129, 55)'><?php print $title; ?></a>
                                                                 </li>
-                                                            <?php } else { ?>
+    <?php } else { ?>
                                                                 <li ><a><input type="submit" style='background-color:rgba(204, 154, 129, 0);color:fff' name='<?php print $title; ?>' value='<?php print $title; ?>' /></a>
                                                                 </li>
                                                                 <?php
@@ -684,7 +696,7 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
                                                                 ?>
                                                             </ul>
                                                             <div class="notification-view">
-                                                                <?php if (count($datanote) > 3) print "<a href='notification.php'>View All Notification</a>"; ?>
+<?php if (count($datanote) > 3) print "<a href='notification.php'>View All Notification</a>"; ?>
                                                             </div>
                                                         </div>
                                                     </li>
@@ -836,6 +848,7 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
                                                                     <th>MARKETPLACE SKU</th>                                                                
                                                                     <th>WAREHOUSE SKU</th>
                                                                     <th>AMOUNT</th>
+                                                                    <th>CHECK</th>
                                                                 </tr>
                                                                 <?php
 //这段控制pickup表
@@ -875,6 +888,12 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
                                                                         print "</select><br></td>";
                                                                         print "<td>{$_SESSION['ordertosend'][$skuindex]['amount']}</td>";
                                                                         @$total += intval($_SESSION['ordertosend'][$skuindex]['amount']);
+                                                                        $check = "check" . $index;
+                                                                        ?>
+                                                                        <td>
+                                                                            <input  style="color:#000" name ="<?php print $check; ?>"   value="1" type="checkbox">
+                                                                        </td ></tr>
+                                                                        <?php
                                                                     }
                                                                 }
                                                                 ?>
@@ -902,6 +921,7 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
                                                                     <th>MARKETPLACE SKU</th>                                                                
                                                                     <th>WAREHOUSE SKU</th>
                                                                     <th>AMOUNT</th>
+                                                                    <th>CHECK</th>
                                                                 </tr>
                                                                 <?php
 //这段控制pickup表
@@ -940,6 +960,12 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
                                                                         print "<td>{$value}</td>";
                                                                         @$total_array += $value;
                                                                         $skuindex_array++;
+                                                                        $check = "check_array" . $index;
+                                                                        ?>
+                                                                        <td>
+                                                                            <input  style="color:#000" name ="<?php print $check; ?>"   value="1" type="checkbox">
+                                                                        </td ></tr>
+                                                                        <?php
                                                                     }
                                                                 }
                                                                 ?>
