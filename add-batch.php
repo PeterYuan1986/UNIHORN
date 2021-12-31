@@ -290,6 +290,140 @@ if (isset($_POST['save'])) {
                 echo "<script> alert('请上传csv文件!')</script>";
             }
         }
+    } elseif ($_POST['documenttype'] == 3) {
+        $allowedExts = array(
+//            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+//            'application/xlsx',
+//            
+            'application/csv',
+            'application/excel',
+            'application/vnd.ms-excel',
+            'application/vnd.msexcel',
+            'text/anytext',
+            'application/octet-stream',
+        );
+        if (@$_POST['empty'] != NULL) {
+            $sql = "SELECT * FROM daifa where (cmpid='" . $cmpid . "') and  batchname='" . $daifabatchname . "'";
+            $result = mysqli_query($conn, $sql);
+            $totalrow = mysqli_num_rows($result);
+
+            if ($totalrow > 0) {
+//echo @$_FILES["file"]["name"] . " 文件已经存在。 ";
+                echo "<script> alert('批次名已存在，请重新输入！')</script>";
+            } else {
+                $sql = "INSERT INTO daifa(batchname, type, orders, dhltracking, status, cmpid, class) VALUES ('" . $daifabatchname . "','" . $daifaservice . "','','" . $daifadhl . "','PENDING', '" . $cmpid . "','" . $daifaclass . "')";
+                $result = mysqli_query($conn, $sql);
+                echo "<script> alert('批次新建成功！')</script>";
+            }
+        } else {
+            $temp = explode(".", @$_FILES["file"]["name"]);
+//echo @$_FILES["file"]["size"];
+            $extension = end($temp);     // 获取文件后缀名
+            if (in_array(@$_FILES["file"]["type"], $allowedExts)) {
+                if (@$_FILES["file"]["error"] > 0) {
+// echo "错误：: " . @$_FILES["file"]["error"] . "<br>";
+                    echo "<script> alert('Error,请联系管理员！')</script>";
+                } else {
+// echo "上传文件名: " . @$_FILES["file"]["name"] . "<br>";
+// echo "文件类型: " . @$_FILES["file"]["type"] . "<br>";
+// echo "文件大小: " . (@$_FILES["file"]["size"] / 1024) . " kB<br>";
+// echo "文件临时存储的位置: " . @$_FILES["file"]["tmp_name"] . "<br>";
+//判断当期目录下的 upload 目录是否存在该文件
+//如果没有 upload 目录，你需要创建它，upload 目录权限为 777
+                    $sql = "SELECT * FROM daifa where (cmpid='" . $cmpid . "') and  batchname='" . $daifabatchname . "'";
+                    $result = mysqli_query($conn, $sql);
+                    $totalrow = mysqli_num_rows($result);
+
+                    if ($totalrow > 0) {
+//echo @$_FILES["file"]["name"] . " 文件已经存在。 ";
+                        echo "<script> alert('批次名已存在，请重新输入！')</script>";
+                    } else {
+// 如果 upload 目录不存在该文件则将文件上传到 upload 目录下
+                        move_uploaded_file(@$_FILES["file"]["tmp_name"], "./upload/cmp" . $cmpid . "_" . $daifabatchname . "." . $extension);
+//echo "文件存储在: " . "upload/" . $_SESSION['daifabatchname'].".csv". "<br>";
+
+
+                        @$filepath = @fopen("./upload/cmp" . $cmpid . "_" . $daifabatchname . "." . $extension, 'r');
+                        @$content = fgetcsv($filepath);
+                        if ($content) {
+                            $stack = array();
+                            $order = 0;
+                            foreach ($content as $seq) {
+                                $stack["{$seq}"]=$order;
+                                $order++;
+                            }
+                        }
+                        try {
+                            $ordernumbers = 0;
+                            $totalfee = 0;
+                            $flag = 1;
+                            while (@$content = fgetcsv($filepath)) {    //每次读取CSV里面的一行内容 
+                                $note = '';
+                                $amount = $content[$stack['Qty']];
+                                $note = $note . $content[$stack['SKU']] . "*" . $amount . '; ';
+                                $note = strexchange($note);
+                                $content['orderid'] = strexchange($content[1]);
+                                $content['name'] = strexchange($content[$stack['Customer Name']]);
+                                $content['address'] = strexchange($content[$stack['Ship to Address 1']]);
+                                $content['address2'] = strexchange($content[$stack['Ship to Address 2']]);
+                                $content['city'] = strexchange($content[$stack['City']]);
+                                $content['State'] = strexchange($content[$stack['State']]);
+                                $content['zipcode'] = strexchange($content[$stack['Zip']]);
+                                $content['Phone'] = strexchange($content[$stack['Customer Phone Number']]);
+                                $content['Weight'] = $amount*7; //主板的重量
+
+                                if ($daifaclass == 0) {
+                                    if ($daifaservice == "Letter") {
+                                        $fee = $letterfee;
+                                    } else
+                                        $fee = $packagefee;
+                                } else {
+                                    $fee = $originalpackagefee + $amount * $amountfee;
+                                }
+                                $totalfee = $totalfee + $fee;
+                                $sql = "SELECT * FROM daifaorders WHERE cmpid='" . $cmpid . "' and orderid='" . $content[0] . "'";
+                                $result = mysqli_query($conn, $sql);
+                                $totalrow = mysqli_num_rows($result);
+                                if ($totalrow > 0) {
+                                    $flag = 0;
+                                    $sql = "DELETE FROM daifaorders WHERE cmpid='" . $cmpid . "' and batch='" . $daifabatchname . "'";
+                                    mysqli_query($conn, $sql);
+                                    unlink("./upload/cmp" . $cmpid . "_" . $daifabatchname . "." . $extension);
+                                    echo "<script> alert('重复单号或者此单号信息有误：" . $content[0] . "！请检查此订单名称中含有冒号等特殊符号，请修改后重新上传！')</script>";
+                                    break;
+                                } else {
+                                    $sql = "INSERT INTO daifaorders(orderid, name,  address,address2, city, State, zipcode, Phone, Weight ,note, service, batch, cmpid,fee,amount) VALUES ('" . $content['orderid'] . "','" . $content['name'] . "','" . $content['address'] . "','" . $content['address2'] . "','" . $content['city'] . "','" . $content['State'] . "','" . $content['zipcode'] . "','" . $content['Phone'] . "','" . $content['Weight'] . "','" . $note . "','" . $daifaservice . "','" . $daifabatchname . "','" . $cmpid . "','" . $fee . "','" . $amount . "')";
+                                    $result = mysqli_query($conn, $sql);
+                                    $ordernumbers++;
+                                    if (!$result) {
+                                        $totalfee = $totalfee - $fee;
+                                        $ordernumbers--;
+                                        echo "<script> alert('插入单号" . $content[0] . "报错，请记录单号并联系管理员,')</script>";
+                                    }
+                                }
+                            }
+                            if ($flag) {
+                                $sql = "INSERT INTO daifa(batchname, type, orders, dhltracking, status, cmpid,servicefee, class)  VALUES ('" . $daifabatchname . "','" . $daifaservice . "','" . $ordernumbers . "','" . $daifadhl . "','PENDING', '" . $cmpid . "','" . $totalfee . "','" . $daifaclass . "')";
+                                mysqli_query($conn, $sql);
+                                echo "<script> alert('文件上传成功！')</script>";
+                            }
+                        } catch (Exception $ex) {
+                            print $ex;
+                        }
+
+
+                        @fclose(@$filepath);
+//header("Location:data-table.php");
+                    }
+                }
+            } else {
+//                 echo "上传文件名: " . @$_FILES["file"]["name"] . "<br>";
+// echo "文件类型: " . @$_FILES["file"]["type"] . "<br>";
+// echo "文件大小: " . (@$_FILES["file"]["size"] / 1024) . " kB<br>";
+// echo "文件临时存储的位置: " . @$_FILES["file"]["tmp_name"] . "<br>";
+              echo "<script> alert('请上传csv文件!')</script>";
+            }
+        }
     } else {
         $allowedExts = array(
             'text/csv',
@@ -847,6 +981,8 @@ if (isset($_POST['save'])) {
                                                                     <input type="radio" name="documenttype" value ="1" <?php if ($cmpid == '3') print "checked"; ?>><a style="color:yellow">Amazon导出文件</a>  
                                                                     <a> &nbsp;  &nbsp;  &nbsp;  &nbsp;   </a>
                                                                     <input type="radio" name="documenttype" value ="2" <?php if ($cmpid == '0') print "checked"; ?>><a style="color:yellow">Newegg导出文件</a> 
+                                                                    <a> &nbsp;  &nbsp;  &nbsp;  &nbsp;   </a>
+                                                                    <input type="radio" name="documenttype" value ="3" <?php if ($cmpid == '3') print "checked"; ?>><a style="color:yellow">Walmart导出文件</a> 
                                                                 </div>
                                                                 <div>
                                                                     <br>

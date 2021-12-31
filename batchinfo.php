@@ -115,6 +115,10 @@ if (isset($_POST['newegg'])) {
 
     echo "<script>window.open('exportbatch.php?type=newegg&id=" . $batch . " ')</script>";
 }
+if (isset($_POST['walmart'])) {
+
+    echo "<script>window.open('exportbatch.php?type=walmart&id=" . $batch . " ')</script>";
+}
 if (isset($_POST['unihorn'])) {
 
     echo "<script>window.open('exportbatch.php?id=" . $batch . " ')</script>";
@@ -510,8 +514,10 @@ if (isset($_POST['dhl_invoice'])) {
                                                         <button name="newegg" title="仅针对使用Newegg文件导入的批次" type="submit" class="pd-setting-ed">导出Newegg上传文件</button>
 
                                                     </div>
+                                                    <div style="color:#fff;width:px;float:right;">
+                                                        <button name="walmart" title="仅针对使用Walmart文件导入的批次" type="submit" class="pd-setting-ed">导出Walmart上传文件</button>
 
-
+                                                    </div>
                                                     <div style="color:#fff;width:px;float:right;">
                                                         <button name="unihorn" title="导出UNIHORN文件" type="submit" class="pd-setting-ed">导出UNIHORN文件</button>
                                                     </div>

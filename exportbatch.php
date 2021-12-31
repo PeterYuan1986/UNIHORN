@@ -13,6 +13,12 @@ $cmpid = $_SESSION['user_info']['cmpid'];
 $childid = $_SESSION['user_info']['childid'];
 check_access($useroffice, $userlevel, $pageoffice, $pagelevel);
 
+
+function str_exchange($a) {
+    $b = strval(str_replace(",", " ", $a));    
+    return $b;
+}
+
 // 换cmpid在页面顶端
 if (sizeof($childid) > 1) {
     foreach ($childid as $x) {
@@ -57,6 +63,29 @@ if (isset($_GET['type']) && $_GET['type'] == 'amazon') {
             $text = $text . strval($content[$index]) . ",";
         }
         $text = $text . $content[31] . "," . $row['carrier'] . "," . $row['service'] . "," . $row['tracking'] . "\t\n";
+        fwrite($fw, $text);
+    }
+    fclose($fw);
+}elseif (isset($_GET['type']) && $_GET['type'] == 'walmart') {
+    $batch = $_GET['id'];
+    $filepath = @fopen("./upload/cmp" . $cmpid . "_" . $batch . ".csv", 'r');
+    @$content = fgets($filepath);
+    $file = ("./upload/Export_Newegg_upload_" . $batch . ".csv");
+    $fw = fopen($file, "w");
+    fwrite($fw, "PO#,Order#,Order Date,Ship By,Delivery Date,Customer Name,Customer Shipping Address,Customer Phone Number,Ship to Address 1,Ship to Address 2,City,State,Zip,Segment,FLIDS,Line#,UPC,Status,Item Description,Shipping Method,Shipping Tier,Shipping SLA,Shipping Config SOurce,Qty,SKU,Item Cost,Shipping Cost,Tax,Update Status,Update Qty,Carrier,Tracking Number,Tracking Url,Seller Order NO,Fulfillment Entity,Replacement Order,Original Customer Order Id\n");
+    while (@$content = fgetcsv($filepath, 1000, ",")) {    //每次读取CSV里面的一行内容
+        $sql = "SELECT carrier,tracking,service FROM daifaorders where batch='" . $batch . "' and (cmpid='" . $cmpid . "') and orderid='" . $content[1] . "'";  //SELECT * FROM daifaorders where batch='0704_UPS' ORDER by orderid ASC
+        $result = mysqli_query($conn, $sql);
+        $row = mysqli_fetch_array($result);
+        $text = '';
+        for ($index = 0; $index <= 27; $index++) {    
+            $text = $text . str_exchange(strval($content[$index])) . "\t,\t";
+        }
+        $text = $text .  "Ship," .$content[23] . "," . $row['carrier'] . "," .  $row['tracking'] . "\t,\t";
+        for ($index = 32; $index <= 36; $index++) {    
+            $text = $text . str_exchange(strval($content[$index])) . "\t,\t";
+        }
+        $text = $text ."\n";
         fwrite($fw, $text);
     }
     fclose($fw);

@@ -259,6 +259,9 @@ if (isset($_POST['save'])) {
                             if ($_POST['checkbox'] == NULL) {
                                 print '<script> location.replace("data-table.php"); </script>';
                             }
+                        } else {
+                            echo "<script> alert('文件上传不成功，请重新上传！')</script>";
+                            unset($_SESSION['ordertosend']);
                         }
                     } catch (Exception $ex) {
                         
@@ -362,7 +365,7 @@ if (isset($_POST['confirm']) && isset($_SESSION['ordertosend'])) {
         }
         unset($_SESSION['ordertosend']);
         echo "<script> alert('文件上传成功！')</script>";
-        print '<script> location.replace("data-table.php"); </script>';
+//        print '<script> location.replace("data-table.php"); </script>';
     }
     if ($_SESSION['warehouse'] == 'sh') {
         $skuidx = 0;
@@ -888,10 +891,10 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
                                                                         print "</select><br></td>";
                                                                         print "<td>{$_SESSION['ordertosend'][$skuindex]['amount']}</td>";
                                                                         @$total += intval($_SESSION['ordertosend'][$skuindex]['amount']);
-                                                                        $check = "check" . $index;
+                                                                        $check = "check" . $skuindex;
                                                                         ?>
                                                                         <td>
-                                                                            <input  style="color:#000" name ="<?php print $check; ?>"   value="1" type="checkbox">
+                                                                            <input  style="color:#000" name ="<?php print $check; ?>"   value="1" checked type="checkbox">
                                                                         </td ></tr>
                                                                         <?php
                                                                     }
@@ -960,7 +963,7 @@ if (isset($_POST['confirm_array']) && isset($_SESSION['tosend_array'])) {
                                                                         print "<td>{$value}</td>";
                                                                         @$total_array += $value;
                                                                         $skuindex_array++;
-                                                                        $check = "check_array" . $index;
+                                                                        $check = "check_array" . $skuindex_array;
                                                                         ?>
                                                                         <td>
                                                                             <input  style="color:#000" name ="<?php print $check; ?>"   value="1" type="checkbox">
