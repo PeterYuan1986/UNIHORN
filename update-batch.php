@@ -264,7 +264,7 @@ if (isset($_POST['save'])) {
                             unset($_SESSION['ordertosend']);
                         }
                     } catch (Exception $ex) {
-                        
+                        print($ex);
                     }
                 }
                 if (@$content && @sizeof(@$content) == 28) {
@@ -321,6 +321,10 @@ if (isset($_POST['save'])) {
                                 $totalcost = $totalcost + $data[$index][0];
                                 $totalfee = $totalfee + $data[$index][1];
                             }
+                            
+                       
+                            
+                            
                             $sql = "UPDATE daifa SET time=CURRENT_TIME, status='SHIPPED', shippingcost='" . $totalcost . "', servicefee='" . $totalfee . "' WHERE (cmpid='" . $cmpid . "') AND batchname='" . $batch . "'";
                             $result = mysqli_query($conn, $sql);
                             echo "<script> alert('文件上传成功！')</script>";

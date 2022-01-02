@@ -74,16 +74,25 @@ if (isset($_GET['type']) && $_GET['type'] == 'amazon') {
     $fw = fopen($file, "w");
     fwrite($fw, "PO#,Order#,Order Date,Ship By,Delivery Date,Customer Name,Customer Shipping Address,Customer Phone Number,Ship to Address 1,Ship to Address 2,City,State,Zip,Segment,FLIDS,Line#,UPC,Status,Item Description,Shipping Method,Shipping Tier,Shipping SLA,Shipping Config SOurce,Qty,SKU,Item Cost,Shipping Cost,Tax,Update Status,Update Qty,Carrier,Tracking Number,Tracking Url,Seller Order NO,Fulfillment Entity,Replacement Order,Original Customer Order Id\n");
     while (@$content = fgetcsv($filepath, 1000, ",")) {    //每次读取CSV里面的一行内容
-        $sql = "SELECT carrier,tracking,service FROM daifaorders where batch='" . $batch . "' and (cmpid='" . $cmpid . "') and orderid='" . $content[1] . "'";  //SELECT * FROM daifaorders where batch='0704_UPS' ORDER by orderid ASC
+        $sql = "SELECT carrier,tracking,service FROM daifaorders where batch='" . $batch . "' and (cmpid='" . $cmpid . "') and orderid='walmart-" . $content[1] . "'";  //SELECT * FROM daifaorders where batch='0704_UPS' ORDER by orderid ASC
         $result = mysqli_query($conn, $sql);
         $row = mysqli_fetch_array($result);
         $text = '';
-        for ($index = 0; $index <= 27; $index++) {    
-            $text = $text . str_exchange(strval($content[$index])) . "\t,\t";
-        }
-        $text = $text .  "Ship," .$content[23] . "," . $row['carrier'] . "," .  $row['tracking'] . "\t,\t";
-        for ($index = 32; $index <= 36; $index++) {    
-            $text = $text . str_exchange(strval($content[$index])) . "\t,\t";
+        for ($index = 0; $index <= 36; $index++) {    
+            if($index ==28){
+                $content[$index]="Ship" ;
+            }
+            if($index ==29){
+                $content[$index]=$content[23] ;
+            }
+            if($index ==30){
+                $content[$index]=$row['carrier'] ;
+            }
+            if($index ==31){
+                $content[$index]=$row['tracking'] ;
+            }
+            
+            $text = $text . str_exchange(strval($content[$index])) . "\t,";
         }
         $text = $text ."\n";
         fwrite($fw, $text);

@@ -85,7 +85,19 @@ if (isset($_POST['save'])) {
                             $totalfee = 0;
                             $flag = 1;
                             while (@$content = fgetcsv($filepath, 1000, "\t")) {    //每次读取CSV里面的一行内容 
-                                $sql = "SELECT note,fee FROM daifaorders WHERE cmpid='" . $cmpid . "' and orderid='" . $content[0] . "'and not(batch='" . $daifabatchname . "')";
+                                $note = $content[10] . "*" . $content[14] . '; ';
+                                $amount = $content[14];
+                                $note = strexchange($note);
+                                $content['orderid'] = strexchange($content[0]);
+                                $content['name'] = strexchange($content[16]);
+                                $content['address'] = strexchange($content[17]);
+                                $content['address2'] = strexchange($content[18]);
+                                $content['city'] = strexchange($content[20]);
+                                $content['State'] = strexchange($content[21]);
+                                $content['zipcode'] = strval(strexchange($content[22]));
+                                $content['Phone'] = strexchange($content[9]);
+                                $content['Weight'] = $amount * 7;
+                                $sql = "SELECT note,fee FROM daifaorders WHERE cmpid='" . $cmpid . "' and orderid='" . $content['orderid']  . "'and not(batch='" . $daifabatchname . "')";
                                 $result = mysqli_query($conn, $sql);
                                 $totalrow = mysqli_num_rows($result);
                                 if ($totalrow > 0) {
@@ -93,54 +105,26 @@ if (isset($_POST['save'])) {
                                     $sql = "DELETE FROM daifaorders WHERE cmpid='" . $cmpid . "' and batch='" . $daifabatchname . "'";
                                     mysqli_query($conn, $sql);
                                     unlink("./upload/cmp" . $cmpid . "_" . $daifabatchname . "." . $extension);
-                                    echo "<script> alert('与之前批次单号重复或者此单号信息有误：" . $content[0] . "！请检查此订单名称中含有冒号等特殊符号，请修改后重新上传！')</script>";
+                                    echo "<script> alert('与之前批次单号重复或者此单号信息有误：" . $content['orderid']  . "！请检查此订单名称中含有冒号等特殊符号，请修改后重新上传！')</script>";
                                     break;
                                 } else {
-                                    $sql = "SELECT note,fee,weight FROM daifaorders WHERE cmpid='" . $cmpid . "' and orderid='" . $content[0] . "'and batch='" . $daifabatchname . "'";
-                                    $result = mysqli_query($conn, $sql);
-                                    $rows = mysqli_num_rows($result);
-                                    if ($rows > 0) {
-                                        $row = mysqli_fetch_array($result);
-                                        $note = $row[0] . $content[10] . "*" . $content[14] . '; ';
-                                        $amount = $content[14];
-                                        $fee = $amount * $amountfee;
-                                        $weight = $row[2] + $amount * 13;
-                                        $totalfee = $totalfee + $fee;
-                                        $sql = "UPDATE daifaorders set note='" . $note . "'   ,fee =fee+'" . $fee . "'   ,amount =amount+'" . $amount . "'   ,weight ='" . $weight . "'  WHERE cmpid='" . $cmpid . "' and orderid='" . $content[0] . "'and batch='" . $daifabatchname . "'";
-                                        $result = mysqli_query($conn, $sql);
+
+                                    if ($daifaclass == 0) {
+                                        if ($daifaservice == "Letter") {
+                                            $fee = $letterfee;
+                                        } else
+                                            $fee = $packagefee;
                                     } else {
-                                        $note = $content[10] . "*" . $content[14] . '; ';
-                                        $amount = $content[14];
-
-                                        $note = strexchange($note);
-                                        $content['orderid'] = strexchange($content[0]);
-                                        $content['name'] = strexchange($content[16]);
-                                        $content['address'] = strexchange($content[17]);
-                                        $content['address2'] = strexchange($content[18]);
-                                        $content['city'] = strexchange($content[20]);
-                                        $content['State'] = strexchange($content[21]);
-                                        $content['zipcode'] = strval(strexchange($content[22]));
-                                        $content['Phone'] = strexchange($content[9]);
-                                        $content['Weight'] = $amount * 7;
-
-                                        if ($daifaclass == 0) {
-                                            if ($daifaservice == "Letter") {
-                                                $fee = $letterfee;
-                                            } else
-                                                $fee = $packagefee;
-                                        } else {
-                                            $fee = $originalpackagefee + $amount * $amountfee;
-                                        }
-                                        $totalfee = $totalfee + $fee;
-
-                                        $sql = "INSERT INTO daifaorders(orderid, name,  address,address2, city, State, zipcode, Phone, Weight ,note, service, batch, cmpid,fee,amount) VALUES ('" . $content['orderid'] . "','" . $content['name'] . "','" . $content['address'] . "','" . $content['address2'] . "','" . $content['city'] . "','" . $content['State'] . "','" . $content['zipcode'] . "','" . $content['Phone'] . "','" . $content['Weight'] . "','" . $note . "','" . $daifaservice . "','" . $daifabatchname . "','" . $cmpid . "','" . $fee . "','" . $amount . "')";
-                                        $result = mysqli_query($conn, $sql);
-                                        $ordernumbers++;
-                                        if (!$result) {
-                                            $totalfee = $totalfee - $fee;
-                                            $ordernumbers--;
-                                            echo "<script> alert('插入单号" . $content[0] . "报错，请记录单号并联系管理员,')</script>";
-                                        }
+                                        $fee = $originalpackagefee + $amount * $amountfee;
+                                    }
+                                    $totalfee = $totalfee + $fee;
+                                    $sql = "INSERT INTO daifaorders(orderid, name,  address,address2, city, State, zipcode, Phone, Weight ,note, service, batch, cmpid,fee,amount) VALUES ('" . $content['orderid'] . "','" . $content['name'] . "','" . $content['address'] . "','" . $content['address2'] . "','" . $content['city'] . "','" . $content['State'] . "','" . $content['zipcode'] . "','" . $content['Phone'] . "','" . $content['Weight'] . "','" . $note . "','" . $daifaservice . "','" . $daifabatchname . "','" . $cmpid . "','" . $fee . "','" . $amount . "')";
+                                    $result = mysqli_query($conn, $sql);
+                                    $ordernumbers++;
+                                    if (!$result) {
+                                        $totalfee = $totalfee - $fee;
+                                        $ordernumbers--;
+                                        echo "<script> alert('插入单号" . $content[0] . "报错，请记录单号并联系管理员,')</script>";
                                     }
                                 }
                             }
@@ -219,7 +203,7 @@ if (isset($_POST['save'])) {
                             $stack = array();
                             $order = 0;
                             foreach ($content as $seq) {
-                                $stack["{$seq}"]=$order;
+                                $stack["{$seq}"] = $order;
                                 $order++;
                             }
                         }
@@ -227,10 +211,9 @@ if (isset($_POST['save'])) {
                             $ordernumbers = 0;
                             $totalfee = 0;
                             $flag = 1;
-                            while (@$content = fgetcsv($filepath)) {    //每次读取CSV里面的一行内容 
-                                $note = '';
+                            while (@$content = fgetcsv($filepath)) {    //每次读取CSV里面的一行内容                                 
                                 $amount = $content[$stack['Quantity Ordered']];
-                                $note = $note . $content[$stack['Item Seller Part #']] . "*" . $amount . '; ';
+                                $note = $content[$stack['Item Seller Part #']] . "*" . $amount . '; ';
                                 $note = strexchange($note);
                                 $content['orderid'] = strexchange($content[0]);
                                 $content['name'] = strexchange($content[$stack['Ship To First Name']]) . " " . strexchange($content[$stack['Ship To LastName']]);
@@ -251,7 +234,7 @@ if (isset($_POST['save'])) {
                                     $fee = $originalpackagefee + $amount * $amountfee;
                                 }
                                 $totalfee = $totalfee + $fee;
-                                $sql = "SELECT * FROM daifaorders WHERE cmpid='" . $cmpid . "' and orderid='" . $content[0] . "'";
+                                $sql = "SELECT * FROM daifaorders WHERE cmpid='" . $cmpid . "' and orderid='" . $content['orderid'] . "'";
                                 $result = mysqli_query($conn, $sql);
                                 $totalrow = mysqli_num_rows($result);
                                 if ($totalrow > 0) {
@@ -259,7 +242,7 @@ if (isset($_POST['save'])) {
                                     $sql = "DELETE FROM daifaorders WHERE cmpid='" . $cmpid . "' and batch='" . $daifabatchname . "'";
                                     mysqli_query($conn, $sql);
                                     unlink("./upload/cmp" . $cmpid . "_" . $daifabatchname . "." . $extension);
-                                    echo "<script> alert('重复单号或者此单号信息有误：" . $content[0] . "！请检查此订单名称中含有冒号等特殊符号，请修改后重新上传！')</script>";
+                                    echo "<script> alert('重复单号或者此单号信息有误：" . $content['orderid'] . "！请检查此订单名称中含有冒号等特殊符号，请修改后重新上传！')</script>";
                                     break;
                                 } else {
                                     $sql = "INSERT INTO daifaorders(orderid, name,  address,address2, city, State, zipcode, Phone, Weight ,note, service, batch, cmpid,fee,amount) VALUES ('" . $content['orderid'] . "','" . $content['name'] . "','" . $content['address'] . "','" . $content['address2'] . "','" . $content['city'] . "','" . $content['State'] . "','" . $content['zipcode'] . "','" . $content['Phone'] . "','" . $content['Weight'] . "','" . $note . "','" . $daifaservice . "','" . $daifabatchname . "','" . $cmpid . "','" . $fee . "','" . $amount . "')";
@@ -268,7 +251,7 @@ if (isset($_POST['save'])) {
                                     if (!$result) {
                                         $totalfee = $totalfee - $fee;
                                         $ordernumbers--;
-                                        echo "<script> alert('插入单号" . $content[0] . "报错，请记录单号并联系管理员,')</script>";
+                                        echo "<script> alert('插入单号" . $content['orderid'] . "报错，请记录单号并联系管理员,')</script>";
                                     }
                                 }
                             }
@@ -349,7 +332,7 @@ if (isset($_POST['save'])) {
                             $stack = array();
                             $order = 0;
                             foreach ($content as $seq) {
-                                $stack["{$seq}"]=$order;
+                                $stack["{$seq}"] = $order;
                                 $order++;
                             }
                         }
@@ -362,7 +345,7 @@ if (isset($_POST['save'])) {
                                 $amount = $content[$stack['Qty']];
                                 $note = $note . $content[$stack['SKU']] . "*" . $amount . '; ';
                                 $note = strexchange($note);
-                                $content['orderid'] = strexchange($content[1]);
+                                $content['orderid'] = 'walmart-' . strexchange($content[1]);
                                 $content['name'] = strexchange($content[$stack['Customer Name']]);
                                 $content['address'] = strexchange($content[$stack['Ship to Address 1']]);
                                 $content['address2'] = strexchange($content[$stack['Ship to Address 2']]);
@@ -370,7 +353,7 @@ if (isset($_POST['save'])) {
                                 $content['State'] = strexchange($content[$stack['State']]);
                                 $content['zipcode'] = strexchange($content[$stack['Zip']]);
                                 $content['Phone'] = strexchange($content[$stack['Customer Phone Number']]);
-                                $content['Weight'] = $amount*7; //主板的重量
+                                $content['Weight'] = $amount * 7; //主板的重量
 
                                 if ($daifaclass == 0) {
                                     if ($daifaservice == "Letter") {
@@ -381,7 +364,7 @@ if (isset($_POST['save'])) {
                                     $fee = $originalpackagefee + $amount * $amountfee;
                                 }
                                 $totalfee = $totalfee + $fee;
-                                $sql = "SELECT * FROM daifaorders WHERE cmpid='" . $cmpid . "' and orderid='" . $content[0] . "'";
+                                $sql = "SELECT * FROM daifaorders WHERE cmpid='" . $cmpid . "' and orderid='" . $content['orderid'] . "'";
                                 $result = mysqli_query($conn, $sql);
                                 $totalrow = mysqli_num_rows($result);
                                 if ($totalrow > 0) {
@@ -389,7 +372,7 @@ if (isset($_POST['save'])) {
                                     $sql = "DELETE FROM daifaorders WHERE cmpid='" . $cmpid . "' and batch='" . $daifabatchname . "'";
                                     mysqli_query($conn, $sql);
                                     unlink("./upload/cmp" . $cmpid . "_" . $daifabatchname . "." . $extension);
-                                    echo "<script> alert('重复单号或者此单号信息有误：" . $content[0] . "！请检查此订单名称中含有冒号等特殊符号，请修改后重新上传！')</script>";
+                                    echo "<script> alert('重复单号或者此单号信息有误：" .  $content['orderid'] . "！请检查此订单名称中含有冒号等特殊符号，请修改后重新上传！')</script>";
                                     break;
                                 } else {
                                     $sql = "INSERT INTO daifaorders(orderid, name,  address,address2, city, State, zipcode, Phone, Weight ,note, service, batch, cmpid,fee,amount) VALUES ('" . $content['orderid'] . "','" . $content['name'] . "','" . $content['address'] . "','" . $content['address2'] . "','" . $content['city'] . "','" . $content['State'] . "','" . $content['zipcode'] . "','" . $content['Phone'] . "','" . $content['Weight'] . "','" . $note . "','" . $daifaservice . "','" . $daifabatchname . "','" . $cmpid . "','" . $fee . "','" . $amount . "')";
@@ -398,7 +381,7 @@ if (isset($_POST['save'])) {
                                     if (!$result) {
                                         $totalfee = $totalfee - $fee;
                                         $ordernumbers--;
-                                        echo "<script> alert('插入单号" . $content[0] . "报错，请记录单号并联系管理员,')</script>";
+                                        echo "<script> alert('插入单号" . $content['orderid'] . "报错，请记录单号并联系管理员,')</script>";
                                     }
                                 }
                             }
@@ -421,7 +404,7 @@ if (isset($_POST['save'])) {
 // echo "文件类型: " . @$_FILES["file"]["type"] . "<br>";
 // echo "文件大小: " . (@$_FILES["file"]["size"] / 1024) . " kB<br>";
 // echo "文件临时存储的位置: " . @$_FILES["file"]["tmp_name"] . "<br>";
-              echo "<script> alert('请上传csv文件!')</script>";
+                echo "<script> alert('请上传csv文件!')</script>";
             }
         }
     } else {
@@ -522,7 +505,7 @@ if (isset($_POST['save'])) {
                                     echo "<script> alert('重复单号或者此单号信息有误：" . $content[0] . "！请检查此订单名称中含有冒号等特殊符号，请修改后重新上传！')</script>";
                                     break;
                                 } else {
-                                    $sql = "INSERT INTO daifaorders(orderid, name,  address,address2, city, State, zipcode, Phone, Weight ,note, service, batch, cmpid,fee,amount) VALUES ('" . $content[0] . "','" . $content[1] . "','" . $content[2] . "','" . $content[3] . "','" . $content[4] . "','" . $content[5] . "','" . $content[6] . "','" . $content[7] . "','" . $content[8] . "','" . $note . "','" . $daifaservice . "','" . $daifabatchname . "','" . $cmpid . "','" . $fee . "','" . $amount . "')";
+                                    $sql = "INSERT INTO daifaorders(orderid, name,  address,address2, city, State, zipcode, Phone, Weight ,note, service, batch, cmpid,fee,amount) VALUES ('" . $content[0] . ",'" . $content[1] . "','" . $content[2] . "','" . $content[3] . "','" . $content[4] . "','" . $content[5] . "','" . $content[6] . "','" . $content[7] . "','" . $content[8] . "','" . $note . "','" . $daifaservice . "','" . $daifabatchname . "','" . $cmpid . "','" . $fee . "','" . $amount . "')";
                                     $result = mysqli_query($conn, $sql);
                                     $ordernumbers++;
                                     if (!$result) {
